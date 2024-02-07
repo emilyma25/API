@@ -36,7 +36,7 @@ public class ReadJson {
         String totlaJson="";
         try {
 
-            URL url = new URL("https://pokeapi.co/api/v2/pokemon/ditto");
+            URL url = new URL("https://last-airbender-api.fly.dev/api/v1/characters");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
@@ -68,22 +68,22 @@ public class ReadJson {
 
         JSONParser parser = new JSONParser();
         //System.out.println(str);
-        org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) parser.parse(totlaJson);
-        System.out.println(jsonObject);
+        org.json.simple.JSONArray jsonObjectArray = (org.json.simple.JSONArray) parser.parse(totlaJson);
+        System.out.println(jsonObjectArray);
 
         try {
 
-            String name = (String)jsonObject.get("eye_color");
-
-            org.json.simple.JSONArray msg = (org.json.simple.JSONArray) jsonObject.get("starships");
-            int n =   msg.size(); //(msg).length();
-            for (int i = 0; i < n; ++i) {
-                String test =(String) msg.get(i);
-                System.out.println(test);
-                // System.out.println(person.getInt("key"));
-            }
-         //   String name= (String)jsonObject.get("height");
-            System.out.println(name);
+//            //String name = (String)jsonObjectArray.get("eye_color");
+//
+//            //org.json.simple.JSONArray msg = (org.json.simple.JSONArray) jsonObjectArray.get("starships");
+//            int n =   msg.size(); //(msg).length();
+//            for (int i = 0; i < n; ++i) {
+//                String test =(String) msg.get(i);
+//                System.out.println(test);
+//                // System.out.println(person.getInt("key"));
+//            }
+//         //   String name= (String)jsonObject.get("height");
+//            System.out.println(name);
         }
 
         catch (Exception e) {
