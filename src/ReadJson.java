@@ -1,4 +1,6 @@
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -20,7 +22,7 @@ import org.json.simple.parser.ParseException;
 import javax.swing.*;
 
 // Program for print data in JSON format.
-public class ReadJson {
+public class ReadJson implements ActionListener{
 
     private JFrame mainFrame;
     private JButton next;
@@ -30,10 +32,14 @@ public class ReadJson {
     //if allies is label
     //private JLabel allies;
     private JLabel characterName;
+   private int index = 0;
     private JPanel buttons;
     private JPanel charInfo;
     private int WIDTH = 800;
     private int HEIGHT = 700;
+    private JMenuBar mb;
+    private JMenu file, edit, help;
+    private JMenuItem cut, copy, paste, selectAll;
 
     public static void main(String args[]) throws ParseException {
         // In java JSONObject is used to create JSON object
@@ -156,10 +162,36 @@ public class ReadJson {
         allies.setBounds(50, 5, WIDTH-100, HEIGHT-50);
         JScrollPane scrollPane = new JScrollPane(allies);
         scrollPane.setPreferredSize(new java.awt.Dimension(250, 150));
-        allies.setText("allies");
+        allies.setText(" ");
 
-        characterName = new JLabel("character name");
+        characterName = new JLabel("Click next or previous to begin");
         characterName.setHorizontalAlignment(JLabel.CENTER);
+
+        //menu at top
+        cut = new JMenuItem("cut");
+        copy = new JMenuItem("copy");
+        paste = new JMenuItem("paste");
+        selectAll = new JMenuItem("selectAll");
+        cut.addActionListener(this);
+        copy.addActionListener(this);
+        paste.addActionListener(this);
+        selectAll.addActionListener(this);
+
+        mb = new JMenuBar();
+        file = new JMenu("File");
+        edit = new JMenu("Edit");
+        help = new JMenu("Help");
+        edit.add(cut);
+        edit.add(copy);
+        edit.add(paste);
+        edit.add(selectAll);
+        mb.add(file);
+        mb.add(edit);
+        mb.add(help);
+        //end menu at top
+
+        mainFrame.add(mb);  //add menu bar
+        mainFrame.setJMenuBar(mb); //set menu bar
 
         charInfo.add(characterName);
         charInfo.add(allies);
@@ -176,17 +208,99 @@ public class ReadJson {
 
         buttons.add(previous);
         buttons.add(next);
-
-
-        //mainFrame.add(topHalf);
-        //mainFrame.add(results);
-        //mainFrame.getContentPane().add(scrollPane);
-
-        //mainFrame.add(button3, BorderLayout.SOUTH);
         mainFrame.setVisible(true);
+        next.setActionCommand("next");
+        next.addActionListener(new ButtonClickListener());
+        previous.setActionCommand("previous");
+        previous.addActionListener(new ButtonClickListener());
 
-//        go.setActionCommand("go");
-//        go.addActionListener(new ButtonClickListener());
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == cut)
+            allies.cut();
+        if (e.getSource() == paste)
+            allies.paste();
+        if (e.getSource() == copy)
+            allies.copy();
+        if (e.getSource() == selectAll)
+            allies.selectAll();
+    }
+
+    private class ButtonClickListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            String output = "abc";
+            String totlaJson="";
+            boolean g = true;
+
+            try {
+
+                URL url = new URL("https://last-airbender-api.fly.dev/api/v1/characters");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Accept", "application/json");
+                    if (conn.getResponseCode() != 200) {
+                        throw new RuntimeException("Failed : HTTP error code : "
+                                + conn.getResponseCode());
+                    }
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                    (conn.getInputStream())));
+
+                System.out.println("Output from Server .... \n");
+                while ((output = br.readLine()) != null) {
+                    System.out.println(output);
+                    totlaJson += output;
+                    }
+
+                conn.disconnect();
+
+            } catch (MalformedURLException ea) {
+                ea.printStackTrace();
+
+            } catch (IOException i) {
+                i.printStackTrace();
+            }
+
+            JSONParser parser = new JSONParser();
+            //System.out.println(str);
+            try {
+                org.json.simple.JSONArray jsonObjectArray = (org.json.simple.JSONArray) parser.parse(totlaJson);
+//                System.out.println(jsonObjectArray);
+                String command = e.getActionCommand();
+//                System.out.println("call");
+//                JSONObject character = (JSONObject) jsonObjectArray.get(index);
+//                characterName.setText((String) character.get("name"));
+//                for  (index = 0; index < jsonObjectArray.size();index++){
+//                    JSONObject charact = (JSONObject) jsonObjectArray.get(index);
+//                    characterName.setText((String) charact.get("name"));
+                if (command.equals("next")) {
+                    index++;
+                    if (index == jsonObjectArray.size()){
+                        index=0;
+                    }
+                    JSONObject newCharacter = (JSONObject) jsonObjectArray.get(index);
+                       System.out.println(index);
+                    characterName.setText((String) newCharacter.get("name"));
+                    JSONArray charallies = (JSONArray)newCharacter.get("allies");
+                    System.out.println(newCharacter);
+                    allies.setText((String)charallies.get(0));
+                } else if (command.equals("previous")) {
+                    index--;
+                    if (index==-1){
+                        index=jsonObjectArray.size()-1;
+                    }
+                    JSONObject newCharacter = (JSONObject) jsonObjectArray.get(index);
+                    characterName.setText((String) newCharacter.get("name"));
+                    JSONArray charallies = (JSONArray)newCharacter.get("allies");
+                    allies.setText((String)charallies.get(0));
+                }
+
+            }
+            catch (ParseException ea) {
+                ea.printStackTrace();
+            }
+        }
 
     }
 }
